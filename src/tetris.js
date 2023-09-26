@@ -1,6 +1,7 @@
 const WIDTH = 10;
 const HEIGHT = 20;
 const BLOCK_SIZE = 40; // 格寬
+const FALL_SPEED = 1000; // 下降速度 用在 gameloop 循環
 
 const app = new PIXI.Application({
     width: WIDTH * BLOCK_SIZE,
@@ -91,8 +92,8 @@ function gameLoop() {
     drawGrid();
     drawPiece();
 
-    // 請求下一幀動畫
-    requestAnimationFrame(gameLoop);
+    // 依據參數延遲
+    setTimeout(gameLoop, FALL_SPEED);
 }
 
 init();
