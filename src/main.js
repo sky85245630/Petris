@@ -1,17 +1,17 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
-import { Application } from "pixi.js";
-import config from './config'
+// import { Application } from "pixi.js";
+// import config from './config'
 
 createApp(App).mount('#app')
 
-// pixi
-const app = new Application({
-    width: config.display.width,
-    height: config.display.height,
-});
-document.querySelector('#app')?.append(app.view)
+// // pixi
+// const app = new Application({
+//     width: config.display.width,
+//     height: config.display.height,
+// });
+// document.querySelector('#app')?.append(app.view)
 
 
 // const graphics = new Graphics();
