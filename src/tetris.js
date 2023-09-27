@@ -2,6 +2,7 @@ const WIDTH = 10;
 const HEIGHT = 20;
 const BLOCK_SIZE = 40; // 格寬
 const FALL_SPEED = 1000; // 下降速度 用在 gameloop 循環
+const fixedBlocks = []; // 記錄在底下的方塊
 
 const app = new PIXI.Application({
     width: WIDTH * BLOCK_SIZE,
@@ -106,13 +107,13 @@ function lockPiece() {
             if (piece.shape[y][x]) {
                 const gridX = piece.x + x;
                 const gridY = piece.y + y;
-
                 // 固定方塊在下方
                 grid[gridY][gridX] = piece.color;
+                // 寫入方塊的座標
+                fixedBlocks.push({ x: gridX, y: gridY, color: piece.color });
             }
         }
     }
-
     // 生成方塊
     spawnPiece();
 }
@@ -138,6 +139,15 @@ function gameLoop() {
 
     // 繪製與更新元件
     drawGrid();
+
+     // 繪製所有方塊
+     for (const block of fixedBlocks) {
+        const graphics = new PIXI.Graphics();
+        graphics.beginFill(block.color);
+        graphics.drawRect(block.x * BLOCK_SIZE, block.y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+        app.stage.addChild(graphics);
+    }
+
     drawPiece();
 
     // 依據參數延遲
