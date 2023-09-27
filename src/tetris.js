@@ -76,6 +76,47 @@ function spawnPiece() {
     piece.color = 0xFF0000; // red(hardcode) 
 }
 
+// 檢查碰撞
+function doesPieceCollide() {
+    for (let y = 0; y < piece.shape.length; y++) {
+        for (let x = 0; x < piece.shape[y].length; x++) {
+            if (piece.shape[y][x]) {
+                const gridX = piece.x + x;
+                const gridY = piece.y + y;
+
+                // 檢查落地與彼此ㄉ碰撞
+                if (
+                    gridX < 0 ||
+                    gridX >= WIDTH ||
+                    gridY >= HEIGHT ||
+                    (gridY >= 0 && gridY < HEIGHT && grid[gridY][gridX] !== null)
+                ) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// 到底部鎖死
+function lockPiece() {
+    for (let y = 0; y < piece.shape.length; y++) {
+        for (let x = 0; x < piece.shape[y].length; x++) {
+            if (piece.shape[y][x]) {
+                const gridX = piece.x + x;
+                const gridY = piece.y + y;
+
+                // 固定方塊在下方
+                grid[gridY][gridX] = piece.color;
+            }
+        }
+    }
+
+    // 生成方塊
+    spawnPiece();
+}
+
 // Initialize the game
 function init() {
     drawGrid();
@@ -87,6 +128,13 @@ function gameLoop() {
     app.stage.removeChildren();
     // piece下降
     piece.y++;
+
+    if (doesPieceCollide()) {
+        // 碰撞將方塊移回原處
+        piece.y--;
+        // 鎖死方塊
+        lockPiece();
+    }
 
     // 繪製與更新元件
     drawGrid();
