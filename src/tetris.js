@@ -2,7 +2,17 @@ const WIDTH = 10;
 const HEIGHT = 20;
 const BLOCK_SIZE = 40; // 格寬
 const FALL_SPEED = 1000; // 下降速度 用在 gameloop 循環
+const ACCELERATED_FALL_SPEED = 100;
 const fixedBlocks = []; // 記錄在底下的方塊
+
+// 同種方塊的顏色定為一樣
+const COLORS = [
+    0xFF0000, // Red
+    0x999999, // Green
+    0x0000FF, // Blue
+    0xFFFF00, // Yellow
+    0xFF00FF, // Purple
+];
 
 const app = new PIXI.Application({
     width: WIDTH * BLOCK_SIZE,
@@ -30,13 +40,13 @@ const piece = {
 
 // Piece's shapes
 const shapes = [
-    [[1, 1, 1, 1]], // I
-    [[1, 1], [1, 1]], // O
-    [[1, 1, 1], [0, 1, 0]], // T
-    [[1, 1, 1], [1, 0, 0]], // L
-    [[1, 1, 1], [0, 0, 1]], // J
-    [[1, 1, 0], [0, 1, 1]], // S
-    [[0, 1, 1], [1, 1, 0]], // Z
+    { shape: [[1, 1, 1, 1]], colorIndex: 0 },        // I
+    { shape: [[1, 1], [1, 1]], colorIndex: 1 },      // O
+    { shape: [[1, 1, 1], [0, 1, 0]], colorIndex: 2 }, // T
+    { shape: [[1, 1, 1], [1, 0, 0]], colorIndex: 3 }, // L
+    { shape: [[1, 1, 1], [0, 0, 1]], colorIndex: 4 }, // J
+    { shape: [[1, 1, 0], [0, 1, 1]], colorIndex: 5 }, // S
+    { shape: [[0, 1, 1], [1, 1, 0]], colorIndex: 6 }, // Z
 ];
 
 // 格子
@@ -71,10 +81,96 @@ function drawPiece() {
 // 生成方塊
 function spawnPiece() {
     const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
-    piece.shape = randomShape;
-    piece.x = Math.floor((WIDTH - randomShape[0].length) / 2);
+    piece.shape = randomShape.shape;
+    piece.x = Math.floor((WIDTH - randomShape.shape[0].length) / 2);
     piece.y = 0;
-    piece.color = 0xFF0000; // red(hardcode) 
+    piece.color = COLORS[randomShape.colorIndex]; // 依照COLORS的顏色
+}
+
+document.addEventListener('keydown', handleKeyPress);
+document.addEventListener('keyup', handleKeyUp);
+const LEFT_KEY = 37;
+const RIGHT_KEY = 39;
+const DOWN_KEY = 40;
+const UP_KEY = 38;
+const SPACE_KEY = 32;
+let isAccelerating = false
+
+// 處理鍵盤事件
+function handleKeyPress(e) {
+    console.log('e', e)
+    // 左鍵
+    if (e.keyCode === LEFT_KEY) {
+        movePiece('left')
+    }
+    // 右鍵
+    else if (e.keyCode === RIGHT_KEY) {
+        movePiece('right')
+    }
+    // 下
+    else if (e.keyCode === DOWN_KEY) {
+        isAccelerating = true;
+    }
+    // 上 旋轉
+    else if (e.keyCode === UP_KEY) {
+        rotatePiece()
+    }
+    // 空白直接落下
+    else if (e.keyCode === SPACE_KEY) {
+        while (!doesPieceCollide()) {
+            piece.y++;
+        }
+        // 碰撞將方塊移回原處
+        piece.y--;
+        // 鎖死方塊
+        lockPiece();
+    }
+}
+
+// keyup 重置
+function handleKeyUp(e) {
+    if (e.keyCode === DOWN_KEY) {
+        isAccelerating = false
+    }
+}
+
+// 旋轉方塊
+function rotatePiece() {
+    const originalShape = piece.shape;
+    const rotatedShape = [];
+
+    // 進行矩陣旋轉
+    for (let y = 0; y < originalShape[0].length; y++) {
+        rotatedShape[y] = [];
+        for (let x = 0; x < originalShape.length; x++) {
+            rotatedShape[y][x] = originalShape[originalShape.length - 1 - x][y];
+        }
+    }
+
+    // 檢查旋轉後是否與其他方塊或邊界相碰撞
+    if (!doesPieceCollide(rotatedShape)) {
+        piece.shape = rotatedShape;
+    }
+}
+
+// 方塊移動
+function movePiece(e) {
+    if (e === 'right') {
+        piece.x++ // X座標向右移
+        // 移動碰撞恢復到之前的位置
+        if (doesPieceCollide()) {
+            piece.x--;
+        }
+    }
+    if (e === 'left') {
+        piece.x--
+        if (doesPieceCollide()) {
+            piece.x++;
+        }
+    }
+    if (e === 'down') {
+        // piece.y++
+    }
 }
 
 // 檢查碰撞
@@ -127,6 +223,9 @@ function init() {
 
 function gameLoop() {
     app.stage.removeChildren();
+
+    const fallSpeed = isAccelerating ? ACCELERATED_FALL_SPEED : FALL_SPEED;
+
     // piece下降
     piece.y++;
 
@@ -151,7 +250,12 @@ function gameLoop() {
     drawPiece();
 
     // 依據參數延遲
-    setTimeout(gameLoop, FALL_SPEED);
+    // 使用 requestAnimationFrame 或 setTimeout 設定下一幀的呼叫
+    if (isAccelerating) {
+        requestAnimationFrame(gameLoop);
+    } else if (!doesPieceCollide()) {
+        setTimeout(gameLoop, fallSpeed);
+    }
 }
 
 init();
