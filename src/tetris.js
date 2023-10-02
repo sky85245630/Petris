@@ -1,9 +1,9 @@
 const WIDTH = 10;
 const HEIGHT = 20;
 const BLOCK_SIZE = 40; // 格寬
-const FALL_SPEED = 1000; // 下降速度 用在 gameloop 循環
+const FALL_SPEED = 500; // 下降速度 用在 gameloop 循環
 const ACCELERATED_FALL_SPEED = 100;
-const fixedBlocks = []; // 記錄在底下的方塊
+let fixedBlocks = []; // 記錄在底下的方塊
 
 // 同種方塊的顏色定為一樣
 const COLORS = [
@@ -86,6 +86,39 @@ function spawnPiece() {
     piece.y = 0;
     piece.color = COLORS[randomShape.colorIndex]; // 依照COLORS的顏色
 }
+
+// 检查并消除已满的行
+// function clearFullRows() {
+//     for (let y = HEIGHT - 1; y >= 0; y--) {
+//         let rowIsFull = true;
+//         for (let x = 0; x < WIDTH; x++) {
+//             if (grid[y][x] === null) {
+//                 rowIsFull = false;
+//                 break;
+//             }
+//         }
+//         if (rowIsFull) {
+//             // 清除这一行的方块和颜色信息
+//             for (let x = 0; x < WIDTH; x++) {
+//                 grid[y][x] = null;
+//                 // 清除颜色信息
+//                 fixedBlocks = fixedBlocks.filter(block => block.x !== x || block.y !== y);
+//             }
+
+//             // 将该行上方的所有方块向下移动一行
+//             for (let i = y - 1; i >= 0; i--) {
+//                 for (let x = 0; x < WIDTH; x++) {
+//                     if (grid[i][x] !== null) {
+//                         // 移动格子内容
+//                         grid[i + 1][x] = grid[i][x];
+//                         grid[i][x] = null;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
+
 
 document.addEventListener('keydown', handleKeyPress);
 document.addEventListener('keyup', handleKeyUp);
@@ -197,21 +230,69 @@ function doesPieceCollide() {
 }
 
 // 到底部鎖死
+// 修改 lockPiece 函数，将新方块叠加在已有的方块上
 function lockPiece() {
     for (let y = 0; y < piece.shape.length; y++) {
         for (let x = 0; x < piece.shape[y].length; x++) {
             if (piece.shape[y][x]) {
                 const gridX = piece.x + x;
                 const gridY = piece.y + y;
-                // 固定方塊在下方
+
+                // 叠加新方块在已有的方块上
                 grid[gridY][gridX] = piece.color;
-                // 寫入方塊的座標
                 fixedBlocks.push({ x: gridX, y: gridY, color: piece.color });
             }
         }
     }
-    // 生成方塊
+
+    // 调用新的函数来处理行的清除和方块的下落
+    handleRowClear();
+
+    // 生成新方块
     spawnPiece();
+}
+
+
+// 新的函数来处理多行的清除和方块的下落
+function handleRowClear() {
+    let rowsToClear = [];
+    
+    for (let y = HEIGHT - 1; y >= 0; y--) {
+        let rowIsFull = true;
+        for (let x = 0; x < WIDTH; x++) {
+            if (grid[y][x] === null) {
+                rowIsFull = false;
+                break;
+            }
+        }
+        if (rowIsFull) {
+            rowsToClear.push(y);
+        }
+    }
+
+    // 清除满行和更新方块颜色信息
+    for (const row of rowsToClear) {
+        for (let x = 0; x < WIDTH; x++) {
+            grid[row][x] = null;
+            fixedBlocks = fixedBlocks.filter(block => block.x !== x || block.y !== row);
+        }
+    }
+
+    // 将上方的方块向下移动并更新颜色信息
+    for (let i = rowsToClear[0] - 1; i >= 0; i--) {
+        for (let x = 0; x < WIDTH; x++) {
+            if (grid[i][x] !== null) {
+                // 移动格子内容
+                grid[i + rowsToClear.length][x] = grid[i][x];
+                grid[i][x] = null;
+
+                // 更新颜色信息
+                const color = fixedBlocks.find(block => block.x === x && block.y === i).color;
+                fixedBlocks = fixedBlocks.filter(block => !(block.x === x && block.y === i));
+                fixedBlocks.push({ x: x, y: i + rowsToClear.length, color: color });
+            }
+        }
+    }
 }
 
 // Initialize the game
@@ -235,6 +316,9 @@ function gameLoop() {
         // 鎖死方塊
         lockPiece();
     }
+
+    // // 检查并消除已满的行
+    // clearFullRows();
 
     // 繪製與更新元件
     drawGrid();
