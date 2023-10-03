@@ -5,14 +5,6 @@ const FALL_SPEED = 500; // 下降速度 用在 gameloop 循環
 const ACCELERATED_FALL_SPEED = 100;
 let fixedBlocks = []; // 記錄在底下的方塊
 
-// 同種方塊的顏色定為一樣
-const COLORS = [
-    0xFF5733, // Bright Red
-    0x33FF77, // Bright Green
-    0x3344FF, // Bright Blue
-    0xFFFF33, // Bright Yellow
-    0xFF33FF, // Bright Purple
-];
 
 const app = new PIXI.Application({
     width: WIDTH * BLOCK_SIZE,
@@ -40,13 +32,13 @@ const piece = {
 
 // Piece's shapes
 const shapes = [
-    { shape: [[1, 1, 1, 1]], colorIndex: 0 },        // I
-    { shape: [[1, 1], [1, 1]], colorIndex: 1 },      // O
-    { shape: [[1, 1, 1], [0, 1, 0]], colorIndex: 2 }, // T
-    { shape: [[1, 1, 1], [1, 0, 0]], colorIndex: 3 }, // L
-    { shape: [[1, 1, 1], [0, 0, 1]], colorIndex: 4 }, // J
-    { shape: [[1, 1, 0], [0, 1, 1]], colorIndex: 5 }, // S
-    { shape: [[0, 1, 1], [1, 1, 0]], colorIndex: 6 }, // Z
+    { shape: [[1, 1, 1, 1]], color: 0xFF5733 },        // I
+    { shape: [[1, 1], [1, 1]], color: 0x33FF77 },      // O
+    { shape: [[1, 1, 1], [0, 1, 0]], color: 0x3344FF }, // T
+    { shape: [[1, 1, 1], [1, 0, 0]], color: 0xFFFF33 }, // L
+    { shape: [[1, 1, 1], [0, 0, 1]], color: 0xFF33FF }, // J
+    { shape: [[1, 1, 0], [0, 1, 1]], color: 0x33FF33 }, // S
+    { shape: [[0, 1, 1], [1, 1, 0]], color: 0x3333FF }, // Z
 ];
 
 // 格子
@@ -67,7 +59,7 @@ function drawGrid() {
 function drawPiece() {
     const graphics = new PIXI.Graphics();
     graphics.beginFill(piece.color);
-    // 遍歷方塊的每個單元格，並在畫布上繪製相應的矩形
+    // 遍历方块的每个单元格，并在画布上绘制相应的矩形
     for (let y = 0; y < piece.shape.length; y++) {
         for (let x = 0; x < piece.shape[y].length; x++) {
             if (piece.shape[y][x]) {
@@ -84,7 +76,7 @@ function spawnPiece() {
     piece.shape = randomShape.shape;
     piece.x = Math.floor((WIDTH - randomShape.shape[0].length) / 2);
     piece.y = 0;
-    piece.color = COLORS[randomShape.colorIndex]; // 依照COLORS的顏色
+    piece.color = randomShape.color; // 依照COLORS的顏色
 }
 
 document.addEventListener('keydown', handleKeyPress);
@@ -195,9 +187,9 @@ function movePiece(e) {
             piece.x++;
         }
     }
-    if (e === 'down') {
-        // piece.y++
-    }
+    // if (e === 'down') {
+    //     // piece.y++
+    // }
 }
 
 // 檢查碰撞
@@ -313,9 +305,6 @@ function gameLoop() {
         // 鎖死方塊
         lockPiece();
     }
-
-    // // 检查并消除已满的行
-    // clearFullRows();
 
     // 繪製與更新元件
     drawGrid();
