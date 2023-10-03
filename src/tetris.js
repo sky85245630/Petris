@@ -2,7 +2,7 @@ const WIDTH = 10;
 const HEIGHT = 20;
 const BLOCK_SIZE = 40; // 格寬
 const FALL_SPEED = 500; // 下降速度 用在 gameloop 循環
-const ACCELERATED_FALL_SPEED = 100;
+const ACCELERATED_FALL_SPEED = 100; // 數字越小越快
 let fixedBlocks = []; // 記錄在底下的方塊
 
 
@@ -59,7 +59,7 @@ function drawGrid() {
 function drawPiece() {
     const graphics = new PIXI.Graphics();
     graphics.beginFill(piece.color);
-    // 遍历方块的每个单元格，并在画布上绘制相应的矩形
+    // 遍歷方塊的每個單元格，並在畫布上繪製相應的矩形
     for (let y = 0; y < piece.shape.length; y++) {
         for (let x = 0; x < piece.shape[y].length; x++) {
             if (piece.shape[y][x]) {
@@ -76,7 +76,7 @@ function spawnPiece() {
     piece.shape = randomShape.shape;
     piece.x = Math.floor((WIDTH - randomShape.shape[0].length) / 2);
     piece.y = 0;
-    piece.color = randomShape.color; // 依照COLORS的顏色
+    piece.color = randomShape.color;
 }
 
 document.addEventListener('keydown', handleKeyPress);
@@ -86,7 +86,7 @@ const RIGHT_KEY = 39;
 const DOWN_KEY = 40;
 const UP_KEY = 38;
 const SPACE_KEY = 32;
-let isAccelerating = false
+let isAccelerating = false // down加速功能
 
 // 處理鍵盤事件
 function handleKeyPress(e) {
@@ -154,15 +154,15 @@ function rotatePiece() {
         piece.y = originalY;
         piece.shape = originalPieceShape;
 
-        // 尝试微调以避免卡在边界
+        // 避免卡在邊界
         if (!doesPieceCollide()) {
-            // 尝试向左移动
+            // try向左移动
             piece.x--;
             if (doesPieceCollide()) {
-                // 如果向左移动仍然碰撞，尝试向右移动
+                // 如果向左移動仍碰撞，try向右移動
                 piece.x += 2;
                 if (doesPieceCollide()) {
-                    // 如果向右移动仍然碰撞，恢复到旋转前的位置和形状
+                    // 如果向右移動仍然碰撞，恢復到原本的位置與形狀
                     piece.x--;
                     piece.shape = originalPieceShape;
                 }
@@ -187,9 +187,6 @@ function movePiece(e) {
             piece.x++;
         }
     }
-    // if (e === 'down') {
-    //     // piece.y++
-    // }
 }
 
 // 檢查碰撞
@@ -209,7 +206,7 @@ function doesPieceCollide() {
                     return true;
                 }
 
-                // 检查是否与其他方块发生碰撞
+                // 检查是否與其他方塊發生碰撞
                 if (gridY >= 0 && grid[gridY][gridX] !== null) {
                     return true;
                 }
@@ -219,8 +216,7 @@ function doesPieceCollide() {
     return false;
 }
 
-// 到底部鎖死
-// 修改 lockPiece 函数，将新方块叠加在已有的方块上
+// 到底部鎖死 將新方塊疊加到原有方塊上方
 function lockPiece() {
     for (let y = 0; y < piece.shape.length; y++) {
         for (let x = 0; x < piece.shape[y].length; x++) {
@@ -228,21 +224,19 @@ function lockPiece() {
                 const gridX = piece.x + x;
                 const gridY = piece.y + y;
 
-                // 叠加新方块在已有的方块上
+                // 疊加到原有方塊上方
                 grid[gridY][gridX] = piece.color;
                 fixedBlocks.push({ x: gridX, y: gridY, color: piece.color });
             }
         }
     }
-
-    // 调用新的函数来处理行的清除和方块的下落
+    // 多行清除與方塊的下落
     handleRowClear();
-
     // 生成新方块
     spawnPiece();
 }
 
-// 新的函数来处理多行的清除和方块的下落
+// 多行清除與方塊的下落
 function handleRowClear() {
     let rowsToClear = [];
     
@@ -259,7 +253,7 @@ function handleRowClear() {
         }
     }
 
-    // 清除满行和更新方块颜色信息
+    // 清除滿行與更新方塊顏色
     for (const row of rowsToClear) {
         for (let x = 0; x < WIDTH; x++) {
             grid[row][x] = null;
@@ -267,11 +261,11 @@ function handleRowClear() {
         }
     }
 
-    // 将上方的方块向下移动并更新颜色信息
+    // 將上方的方塊向下移動與更新顏色
     for (let i = rowsToClear[0] - 1; i >= 0; i--) {
         for (let x = 0; x < WIDTH; x++) {
             if (grid[i][x] !== null) {
-                // 移动格子内容
+                // 移動格子內容
                 grid[i + rowsToClear.length][x] = grid[i][x];
                 grid[i][x] = null;
 
@@ -320,7 +314,6 @@ function gameLoop() {
     drawPiece();
 
     // 依據參數延遲
-    // 使用 requestAnimationFrame 或 setTimeout 設定下一幀的呼叫
     if (isAccelerating) {
         requestAnimationFrame(gameLoop);
     } else if (!doesPieceCollide()) {
