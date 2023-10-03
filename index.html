@@ -6,12 +6,39 @@
 </head>
 <body>
   <script src="https://pixijs.download/release/pixi.js"></script>
-  <div class="tetris">
+  
+  <div id="tetris">
+    <h1>俄羅斯方塊</h1>
+    <br>
     <script src="./src/tetris.js"></script>
+    <br>
+    <div class="mt-10">
+      <span>控制：⬅️ ➡️</span>
+      <span class="ml-10">旋轉：⬆️</span>
+      <span class="ml-10">加速：⬇️</span>
+      <span class="ml-10">直接往下：SPACE</span>
+    </div>
   </div>
 </body>
 </html>
 
 <style>
+  body {
+    background-image: url(https://images.chinatimes.com/newsphoto/2015-06-01/CLIPPING/1024/20150601000965.jpg);
+  }
+  #tetris {
+    text-align: center;
+  }
+  .ml-10 {
+    margin-left: 30px;
+  }
+  .mt-10 {
+    margin: 10px 0;
+    padding: 5px 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    position: fixed;
+    background-color: white;
 
+  }
 </style>

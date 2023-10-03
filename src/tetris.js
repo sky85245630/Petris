@@ -11,7 +11,9 @@ const app = new PIXI.Application({
     height: HEIGHT * BLOCK_SIZE,
     backgroundColor: 0xEEEEEE, // 網格顏色
 });
-document.body.appendChild(app.view);
+
+const TETRIS = document.getElementById('tetris');
+TETRIS.appendChild(app.view);
 
 // 生成網格
 const grid = [];
