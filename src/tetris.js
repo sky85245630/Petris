@@ -7,17 +7,17 @@ let fixedBlocks = []; // 記錄在底下的方塊
 
 // 同種方塊的顏色定為一樣
 const COLORS = [
-    0xFF0000, // Red
-    0x999999, // Green
-    0x0000FF, // Blue
-    0xFFFF00, // Yellow
-    0xFF00FF, // Purple
+    0xFF5733, // Bright Red
+    0x33FF77, // Bright Green
+    0x3344FF, // Bright Blue
+    0xFFFF33, // Bright Yellow
+    0xFF33FF, // Bright Purple
 ];
 
 const app = new PIXI.Application({
     width: WIDTH * BLOCK_SIZE,
     height: HEIGHT * BLOCK_SIZE,
-    backgroundColor: 0x000000, // 網格顏色
+    backgroundColor: 0xEEEEEE, // 網格顏色
 });
 document.body.appendChild(app.view);
 
@@ -35,7 +35,7 @@ const piece = {
     x: 0,
     y: 0,
     shape: [],
-    color: 0xFFFFFF, // White
+    color: 0xAAAAAA, // White
 };
 
 // Piece's shapes
@@ -86,39 +86,6 @@ function spawnPiece() {
     piece.y = 0;
     piece.color = COLORS[randomShape.colorIndex]; // 依照COLORS的顏色
 }
-
-// 检查并消除已满的行
-// function clearFullRows() {
-//     for (let y = HEIGHT - 1; y >= 0; y--) {
-//         let rowIsFull = true;
-//         for (let x = 0; x < WIDTH; x++) {
-//             if (grid[y][x] === null) {
-//                 rowIsFull = false;
-//                 break;
-//             }
-//         }
-//         if (rowIsFull) {
-//             // 清除这一行的方块和颜色信息
-//             for (let x = 0; x < WIDTH; x++) {
-//                 grid[y][x] = null;
-//                 // 清除颜色信息
-//                 fixedBlocks = fixedBlocks.filter(block => block.x !== x || block.y !== y);
-//             }
-
-//             // 将该行上方的所有方块向下移动一行
-//             for (let i = y - 1; i >= 0; i--) {
-//                 for (let x = 0; x < WIDTH; x++) {
-//                     if (grid[i][x] !== null) {
-//                         // 移动格子内容
-//                         grid[i + 1][x] = grid[i][x];
-//                         grid[i][x] = null;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
-
 
 document.addEventListener('keydown', handleKeyPress);
 document.addEventListener('keyup', handleKeyUp);
@@ -180,11 +147,38 @@ function rotatePiece() {
         }
     }
 
+    // 暫存旋轉前的位置和形狀
+    const originalX = piece.x;
+    const originalY = piece.y;
+    const originalPieceShape = piece.shape;
+
+    // 將方塊旋轉
+    piece.shape = rotatedShape;
+
     // 檢查旋轉後是否與其他方塊或邊界相碰撞
-    if (!doesPieceCollide(rotatedShape)) {
-        piece.shape = rotatedShape;
+    if (doesPieceCollide()) {
+        // 如果碰撞，將方塊恢復到旋轉前的位置和形狀
+        piece.x = originalX;
+        piece.y = originalY;
+        piece.shape = originalPieceShape;
+
+        // 尝试微调以避免卡在边界
+        if (!doesPieceCollide()) {
+            // 尝试向左移动
+            piece.x--;
+            if (doesPieceCollide()) {
+                // 如果向左移动仍然碰撞，尝试向右移动
+                piece.x += 2;
+                if (doesPieceCollide()) {
+                    // 如果向右移动仍然碰撞，恢复到旋转前的位置和形状
+                    piece.x--;
+                    piece.shape = originalPieceShape;
+                }
+            }
+        }
     }
 }
+
 
 // 方塊移動
 function movePiece(e) {
@@ -218,9 +212,13 @@ function doesPieceCollide() {
                 if (
                     gridX < 0 ||
                     gridX >= WIDTH ||
-                    gridY >= HEIGHT ||
-                    (gridY >= 0 && gridY < HEIGHT && grid[gridY][gridX] !== null)
+                    gridY >= HEIGHT
                 ) {
+                    return true;
+                }
+
+                // 检查是否与其他方块发生碰撞
+                if (gridY >= 0 && grid[gridY][gridX] !== null) {
                     return true;
                 }
             }
@@ -251,7 +249,6 @@ function lockPiece() {
     // 生成新方块
     spawnPiece();
 }
-
 
 // 新的函数来处理多行的清除和方块的下落
 function handleRowClear() {
